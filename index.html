@@ -459,9 +459,9 @@
 
     <!-- API KEY -->
     <div class="apikey-section">
-      <label>🔑 Anthropic API Key</label>
-      <input type="text" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
-      <div class="apikey-hint">前往 <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> 取得 API Key</div>
+      <label>🔑 OpenRouter API Key</label>
+      <input type="text" id="apiKey" placeholder="sk-or-v1-..." autocomplete="off">
+      <div class="apikey-hint">前往 <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> 取得 API Key</div>
     </div>
 
     <!-- PLATFORM -->
@@ -678,7 +678,7 @@ async function generate() {
 
   clearError();
 
-  if (!apiKey) { showError('請先輸入 Anthropic API Key'); return; }
+  if (!apiKey) { showError('請先輸入 OpenRouter API Key'); return; }
   if (!topic) { showError('請填寫主題 / 關鍵字'); document.getElementById('topic').focus(); return; }
 
   const btn = document.getElementById('generateBtn');
@@ -721,11 +721,16 @@ async function generate() {
 }`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.href,
+        'X-Title': '貼文產生器'
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'anthropic/claude-sonnet-4-5',
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -739,7 +744,7 @@ async function generate() {
       return;
     }
 
-    const text = data.content.map(b => b.text || '').join('');
+    const text = data.choices?.[0]?.message?.content || '';
     const clean = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
     renderResults(parsed.posts, currentPlatform);
