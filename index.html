@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>貼文產生器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1a1f3c;
+    --navy-light: #252b4a;
+    --teal: #00d4aa;
+    --teal-dark: #00b894;
+    --teal-glow: rgba(0,212,170,0.18);
+    --bg: #f0f3f8;
+    --card: #ffffff;
+    --text: #1a1f3c;
+    --muted: #6b7280;
+    --border: #e2e8f0;
+    --error: #ef4444;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(26,31,60,0.10);
+  }
+
+  body {
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--navy);
+    padding: 0 32px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+  }
+  .logo {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 10px var(--teal);
+    flex-shrink: 0;
+  }
+  .header-tag {
+    font-size: 0.72rem;
+    background: var(--teal-glow);
+    border: 1px solid rgba(0,212,170,0.35);
+    color: var(--teal);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* LAYOUT */
+  .main-wrap {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 62px);
+  }
+
+  /* LEFT PANEL */
+  .panel-left {
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 28px 28px 40px;
+    overflow-y: auto;
+    max-height: calc(100vh - 62px);
+    position: sticky;
+    top: 62px;
+  }
+
+  /* RIGHT PANEL */
+  .panel-right {
+    background: var(--bg);
+    padding: 32px 36px 48px;
+    overflow-y: auto;
+  }
+
+  /* PLATFORM TABS */
+  .platform-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .platform-tabs {
+    display: flex;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .platform-tab {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    position: relative;
+    z-index: 1;
+  }
+  .platform-tab .tab-icon { font-size: 1.1rem; }
+  .platform-tab.active {
+    color: var(--navy);
+    background: white;
+    box-shadow: 0 1px 6px rgba(26,31,60,0.10);
+  }
+
+  /* SECTION */
+  .section { margin-bottom: 22px; }
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  /* INPUTS */
+  label { display: block; margin-bottom: 6px; font-size: 0.83rem; font-weight: 500; color: var(--text); }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    background: #fff;
+    transition: border 0.18s, box-shadow 0.18s;
+    outline: none;
+    resize: vertical;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-glow);
+  }
+  textarea { min-height: 90px; }
+  select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* TONE PILLS */
+  .tone-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tone-pill {
+    padding: 6px 13px;
+    border-radius: 99px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s;
+    color: var(--muted);
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  }
+  .tone-pill:hover { border-color: var(--teal); color: var(--teal-dark); }
+  .tone-pill.selected { background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 600; }
+
+  /* EMOJI TOGGLE */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; font-size: 0.83rem; font-weight: 500; }
+  .toggle {
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 99px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--teal); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle.on::after { left: 21px; }
+
+  /* HASHTAG COUNT */
+  .count-row { display: flex; align-items: center; gap: 10px; }
+  .count-btn {
+    width: 30px; height: 30px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: white;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .count-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .count-val { font-weight: 700; font-size: 0.95rem; width: 24px; text-align: center; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* GENERATE BUTTON */
+  .btn-generate {
+    width: 100%;
+    padding: 14px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-generate:hover { background: #252b4a; box-shadow: 0 6px 24px rgba(26,31,60,0.25); transform: translateY(-1px); }
+  .btn-generate:active { transform: translateY(0); }
+  .btn-generate.loading { pointer-events: none; }
+  .btn-generate .btn-shimmer {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    transform: translateX(-100%);
+    animation: none;
+  }
+  .btn-generate.loading .btn-shimmer { animation: shimmer 1.2s infinite; }
+  @keyframes shimmer { to { transform: translateX(100%); } }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-generate.loading .spinner { display: block; }
+  .btn-generate.loading .btn-text { opacity: 0.7; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RIGHT PANEL CONTENT */
+  .right-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .right-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .result-count {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 380px;
+    text-align: center;
+    color: var(--muted);
+    gap: 14px;
+  }
+  .empty-icon {
+    width: 72px; height: 72px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 4px;
+  }
+  .empty-state h3 { font-size: 1rem; font-weight: 600; color: var(--navy); }
+  .empty-state p { font-size: 0.83rem; max-width: 260px; line-height: 1.6; }
+
+  /* RESULT CARDS */
+  .results-grid { display: flex; flex-direction: column; gap: 20px; }
+  .result-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+  .result-card:hover { box-shadow: 0 8px 32px rgba(26,31,60,0.14); transform: translateY(-2px); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .result-card:nth-child(2) { animation-delay: 0.06s; }
+  .result-card:nth-child(3) { animation-delay: 0.12s; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    background: #fafbfc;
+  }
+  .card-badge {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.75rem; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .card-badge .badge-icon { font-size: 1rem; }
+  .card-actions { display: flex; gap: 6px; }
+  .action-btn {
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-size: 0.73rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    color: var(--muted);
+    transition: all 0.15s;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  }
+  .action-btn:hover { border-color: var(--teal); color: var(--teal-dark); }
+  .action-btn.copied { background: var(--teal); border-color: var(--teal); color: white; }
+
+  .card-body { padding: 18px; }
+  .post-text {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .card-footer {
+    padding: 10px 18px;
+    border-top: 1px solid var(--border);
+    background: #fafbfc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .char-count { font-size: 0.73rem; color: var(--muted); }
+  .char-count .over { color: var(--error); font-weight: 600; }
+  .platform-limit { font-size: 0.73rem; color: var(--muted); }
+
+  /* ERROR MESSAGE */
+  .error-msg {
+    background: #fff5f5;
+    border: 1.5px solid #fca5a5;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.84rem;
+    color: var(--error);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    animation: fadeUp 0.3s ease;
+    margin-bottom: 16px;
+  }
+
+  /* CHAR LIMIT INDICATOR */
+  .char-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .char-bar-fill { height: 100%; border-radius: 2px; background: var(--teal); transition: width 0.3s, background 0.3s; }
+  .char-bar-fill.warn { background: #f59e0b; }
+  .char-bar-fill.over { background: var(--error); }
+
+  /* API KEY SECTION */
+  .apikey-section {
+    background: linear-gradient(135deg, #f0fdf9 0%, #ecfdf5 100%);
+    border: 1.5px solid rgba(0,212,170,0.3);
+    border-radius: 11px;
+    padding: 14px 15px;
+    margin-bottom: 20px;
+  }
+  .apikey-section label { font-size: 0.78rem; color: #065f46; margin-bottom: 6px; font-weight: 600; }
+  .apikey-section input { background: white; border-color: rgba(0,212,170,0.35); font-size: 0.82rem; }
+  .apikey-hint { font-size: 0.72rem; color: #059669; margin-top: 5px; }
+  .apikey-hint a { color: #00b894; }
+
+  @media (max-width: 900px) {
+    .main-wrap { grid-template-columns: 1fr; }
+    .panel-left { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+    .panel-right { padding: 20px 16px 40px; }
+    header { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    貼文產生器
+  </div>
+  <span class="header-tag">AI Powered</span>
+</header>
+
+<div class="main-wrap">
+
+  <!-- LEFT PANEL -->
+  <div class="panel-left">
+
+    <!-- API KEY -->
+    <div class="apikey-section">
+      <label>🔑 Anthropic API Key</label>
+      <input type="text" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+      <div class="apikey-hint">前往 <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> 取得 API Key</div>
+    </div>
+
+    <!-- PLATFORM -->
+    <div class="section">
+      <div class="platform-label">發布平台</div>
+      <div class="platform-tabs" id="platformTabs">
+        <button class="platform-tab active" data-platform="instagram">
+          <span class="tab-icon">📸</span> Instagram
+        </button>
+        <button class="platform-tab" data-platform="facebook">
+          <span class="tab-icon">👤</span> Facebook
+        </button>
+        <button class="platform-tab" data-platform="threads">
+          <span class="tab-icon">🧵</span> Threads
+        </button>
+        <button class="platform-tab" data-platform="linkedin">
+          <span class="tab-icon">💼</span> LinkedIn
+        </button>
+        <button class="platform-tab" data-platform="twitter">
+          <span class="tab-icon">🐦</span> X / Twitter
+        </button>
+      </div>
+    </div>
+
+    <!-- TOPIC -->
+    <div class="section">
+      <label for="topic">主題 / 關鍵字 <span style="color:var(--error)">*</span></label>
+      <input type="text" id="topic" placeholder="例：咖啡廳開幕、旅遊心得、新品上市…">
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="section">
+      <label for="desc">補充說明（可選）</label>
+      <textarea id="desc" placeholder="可填入更多細節、想傳達的重點、產品特色等…"></textarea>
+    </div>
+
+    <!-- TONE & INDUSTRY -->
+    <div class="section input-row">
+      <div>
+        <label for="industry">產業 / 類型</label>
+        <select id="industry">
+          <option value="general">一般通用</option>
+          <option value="food">餐飲美食</option>
+          <option value="travel">旅遊生活</option>
+          <option value="fashion">時尚穿搭</option>
+          <option value="beauty">美妝保養</option>
+          <option value="fitness">健身運動</option>
+          <option value="tech">科技數位</option>
+          <option value="business">商業品牌</option>
+          <option value="education">教育學習</option>
+          <option value="creative">創意藝術</option>
+          <option value="real_estate">房地產</option>
+        </select>
+      </div>
+      <div>
+        <label for="lang">語言</label>
+        <select id="lang">
+          <option value="zh-TW">繁體中文</option>
+          <option value="zh-CN">簡體中文</option>
+          <option value="en">英文</option>
+          <option value="bilingual">中英雙語</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TONE PILLS -->
+    <div class="section">
+      <div class="section-title">語氣風格</div>
+      <div class="tone-grid" id="tonePills">
+        <button class="tone-pill selected" data-tone="friendly">😊 親切友善</button>
+        <button class="tone-pill" data-tone="professional">💼 專業正式</button>
+        <button class="tone-pill" data-tone="humorous">😄 幽默有趣</button>
+        <button class="tone-pill" data-tone="inspiring">✨ 激勵人心</button>
+        <button class="tone-pill" data-tone="casual">🌊 輕鬆隨性</button>
+        <button class="tone-pill" data-tone="emotional">💕 感性溫暖</button>
+        <button class="tone-pill" data-tone="informative">📖 知識分享</button>
+        <button class="tone-pill" data-tone="promotional">🎯 行銷推廣</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- OPTIONS -->
+    <div class="section">
+      <div class="section-title">產生選項</div>
+      <div class="toggle-row" style="margin-bottom:12px">
+        <div class="toggle-wrap">
+          <span>加入 Emoji</span>
+        </div>
+        <button class="toggle on" id="emojiToggle" aria-label="加入 Emoji"></button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:12px">
+        <div class="toggle-wrap">
+          <span>加入 CTA（行動呼籲）</span>
+        </div>
+        <button class="toggle on" id="ctaToggle" aria-label="CTA"></button>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-wrap">
+          <span>Hashtag 數量</span>
+        </div>
+        <div class="count-row">
+          <button class="count-btn" id="hashDecrease">−</button>
+          <span class="count-val" id="hashCount">5</span>
+          <button class="count-btn" id="hashIncrease">+</button>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- GENERATE -->
+    <button class="btn-generate" id="generateBtn">
+      <div class="btn-shimmer"></div>
+      <div class="spinner"></div>
+      <span class="btn-text">✦ 產生貼文</span>
+    </button>
+    <div style="text-align:center;margin-top:10px;font-size:0.75rem;color:var(--muted)">每次產生 3 種版本供選擇</div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right">
+    <div class="right-header">
+      <div class="right-title">產生結果</div>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+
+    <div id="errorArea"></div>
+    <div id="resultsArea">
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <h3>尚未產生貼文</h3>
+        <p>填寫左側表單後，點擊「產生貼文」即可獲得 3 種不同版本</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLATFORM_LIMITS = {
+  instagram: 2200, facebook: 63206, threads: 500, linkedin: 3000, twitter: 280
+};
+const PLATFORM_NAMES = {
+  instagram: 'Instagram', facebook: 'Facebook', threads: 'Threads', linkedin: 'LinkedIn', twitter: 'X / Twitter'
+};
+const PLATFORM_ICONS = {
+  instagram: '📸', facebook: '👤', threads: '🧵', linkedin: '💼', twitter: '🐦'
+};
+const TONE_LABELS = {
+  friendly: '親切友善', professional: '專業正式', humorous: '幽默有趣',
+  inspiring: '激勵人心', casual: '輕鬆隨性', emotional: '感性溫暖',
+  informative: '知識分享', promotional: '行銷推廣'
+};
+const INDUSTRY_LABELS = {
+  general:'一般通用', food:'餐飲美食', travel:'旅遊生活', fashion:'時尚穿搭',
+  beauty:'美妝保養', fitness:'健身運動', tech:'科技數位', business:'商業品牌',
+  education:'教育學習', creative:'創意藝術', real_estate:'房地產'
+};
+
+let currentPlatform = 'instagram';
+let selectedTone = 'friendly';
+let hashtagCount = 5;
+let emojiOn = true;
+let ctaOn = true;
+
+// Platform tabs
+document.getElementById('platformTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.platform-tab');
+  if (!tab) return;
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentPlatform = tab.dataset.platform;
+});
+
+// Tone pills
+document.getElementById('tonePills').addEventListener('click', e => {
+  const pill = e.target.closest('.tone-pill');
+  if (!pill) return;
+  document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('selected'));
+  pill.classList.add('selected');
+  selectedTone = pill.dataset.tone;
+});
+
+// Toggles
+document.getElementById('emojiToggle').addEventListener('click', function() {
+  emojiOn = !emojiOn;
+  this.classList.toggle('on', emojiOn);
+});
+document.getElementById('ctaToggle').addEventListener('click', function() {
+  ctaOn = !ctaOn;
+  this.classList.toggle('on', ctaOn);
+});
+
+// Hashtag counter
+document.getElementById('hashDecrease').addEventListener('click', () => {
+  if (hashtagCount > 0) hashtagCount--;
+  document.getElementById('hashCount').textContent = hashtagCount;
+});
+document.getElementById('hashIncrease').addEventListener('click', () => {
+  if (hashtagCount < 30) hashtagCount++;
+  document.getElementById('hashCount').textContent = hashtagCount;
+});
+
+// Generate
+document.getElementById('generateBtn').addEventListener('click', generate);
+
+async function generate() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const topic = document.getElementById('topic').value.trim();
+  const desc = document.getElementById('desc').value.trim();
+  const industry = document.getElementById('industry').value;
+  const lang = document.getElementById('lang').value;
+
+  clearError();
+
+  if (!apiKey) { showError('請先輸入 Anthropic API Key'); return; }
+  if (!topic) { showError('請填寫主題 / 關鍵字'); document.getElementById('topic').focus(); return; }
+
+  const btn = document.getElementById('generateBtn');
+  btn.classList.add('loading');
+  btn.querySelector('.btn-text').textContent = '產生中…';
+
+  const langMap = { 'zh-TW': '繁體中文', 'zh-CN': '簡體中文', 'en': '英文', 'bilingual': '中英雙語（主體繁中，點綴英文）' };
+  const limit = PLATFORM_LIMITS[currentPlatform];
+  const platformName = PLATFORM_NAMES[currentPlatform];
+
+  const prompt = `你是一位專業的社群媒體文案撰寫師。請為以下主題產生 3 個不同版本的${platformName}貼文。
+
+【基本資訊】
+- 平台：${platformName}（字數限制：${limit} 字元）
+- 主題：${topic}
+- 補充說明：${desc || '（無）'}
+- 產業類型：${INDUSTRY_LABELS[industry]}
+- 語言：${langMap[lang]}
+- 語氣風格：${TONE_LABELS[selectedTone]}
+- 是否加入 Emoji：${emojiOn ? '是' : '否'}
+- 是否加入行動呼籲（CTA）：${ctaOn ? '是' : '否'}
+- Hashtag 數量：${hashtagCount} 個
+
+【產出要求】
+- 每個版本都要有不同的切入角度和開頭方式
+- 版本一：主打情境感、故事性
+- 版本二：主打重點資訊、清楚傳達
+- 版本三：主打互動、引發共鳴與留言
+- Hashtag 請放在貼文最後
+- 必須嚴格控制在平台字元限制內
+- 純文字輸出，不要任何說明或前言
+
+【回傳格式】請只回傳以下 JSON 格式，不要任何 markdown 或解釋：
+{
+  "posts": [
+    {"version": "情境故事版", "content": "貼文內容"},
+    {"version": "重點資訊版", "content": "貼文內容"},
+    {"version": "互動共鳴版", "content": "貼文內容"}
+  ]
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      const msg = data?.error?.message || '發生錯誤，請稍後再試';
+      showError('API 錯誤：' + msg);
+      return;
+    }
+
+    const text = data.content.map(b => b.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    renderResults(parsed.posts, currentPlatform);
+
+  } catch (err) {
+    showError('無法解析回應，請再試一次。（' + err.message + '）');
+  } finally {
+    btn.classList.remove('loading');
+    btn.querySelector('.btn-text').textContent = '✦ 產生貼文';
+  }
+}
+
+function renderResults(posts, platform) {
+  const area = document.getElementById('resultsArea');
+  const limit = PLATFORM_LIMITS[platform];
+  document.getElementById('resultCount').textContent = `${posts.length} 個版本`;
+
+  area.innerHTML = '<div class="results-grid">' + posts.map((p, i) => {
+    const len = p.content.length;
+    const pct = Math.min((len / limit) * 100, 100);
+    const overLimit = len > limit;
+    const warnClass = overLimit ? 'over' : pct > 80 ? 'warn' : '';
+    return `
+    <div class="result-card" style="animation-delay:${i * 0.07}s">
+      <div class="card-header">
+        <div class="card-badge">
+          <span class="badge-icon">${PLATFORM_ICONS[platform]}</span>
+          版本 ${i + 1}・${p.version}
+        </div>
+        <div class="card-actions">
+          <button class="action-btn" onclick="copyPost(this, ${i})">📋 複製</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-text" id="postText${i}">${escHtml(p.content)}</div>
+      </div>
+      <div class="card-footer">
+        <span class="char-count">
+          <span class="${overLimit ? 'over' : ''}">${len}</span> / ${limit} 字元
+          ${overLimit ? '（超過限制）' : ''}
+        </span>
+        <div class="char-bar" style="width:120px">
+          <div class="char-bar-fill ${warnClass}" style="width:${pct}%"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Store posts for copy
+  window._posts = posts;
+}
+
+function copyPost(btn, idx) {
+  const text = window._posts[idx].content;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ 已複製';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 複製';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+
+function showError(msg) {
+  document.getElementById('errorArea').innerHTML =
+    `<div class="error-msg">⚠️ <span>${msg}</span></div>`;
+}
+function clearError() {
+  document.getElementById('errorArea').innerHTML = '';
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
